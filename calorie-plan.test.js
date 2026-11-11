@@ -1,0 +1,12 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {recommendWorkout,recommendMeals,validateWorkoutRequest,isMealRecommendation} from './calorie-plan.js';
+test('问题1：健身推荐根据目标热量产生动作次数并接近目标',()=>{const r=recommendWorkout(300,60);assert.ok(r.items.length);assert.ok(r.items.every(x=>x.reps>0&&x.action&&x.part&&x.sets>=3&&x.repsPerSet>0));assert.ok(Math.abs(r.estimated-300)<35)});
+test('问题1：饮食推荐生成四餐多食材并综合宏量营养和维生素来源',()=>{const r=recommendMeals(2000);assert.equal(r.meals.length,4);assert.deepEqual(r.meals.map(x=>x.meal),['早餐','午餐','晚餐','加餐']);assert.ok(r.meals.every(m=>m.foods.length>=3&&m.foods.every(f=>f.food&&f.weightGrams>0&&f.calories>0&&f.vitamins)));assert.ok(r.macros.carbs>0&&r.macros.protein>0&&r.macros.fat>0);assert.ok(Math.abs(r.totalCalories-2000)<30)});
+test('问题1：拒绝无效热量目标',()=>{assert.throws(()=>recommendWorkout(0));assert.throws(()=>recommendMeals(-1))});
+test('健身推荐由多个不同动作组成并明确组数和每组次数',()=>{const r=recommendWorkout(250,60,['胸部','背部']);assert.ok(r.items.length>=2);assert.equal(new Set(r.items.map(x=>x.action)).size,r.items.length);assert.ok(r.items.every(x=>x.sets===3&&x.reps===x.sets*x.repsPerSet&&x.targetMuscle))});
+test('健身推荐只生成用户选择的锻炼部位',()=>{const r=recommendWorkout(200,60,['腿部']);assert.ok(r.items.length>0);assert.ok(r.items.every(x=>x.part==='腿部'));assert.throws(()=>recommendWorkout(200,60,[]))});
+test('有氧目标推荐只返回所选择的一种活动，并按分钟估算',()=>{const r=recommendWorkout(200,60,['有氧运动'],'游泳');assert.equal(r.items.length,1);assert.equal(r.items[0].action,'游泳');assert.equal(r.items[0].sets,1);assert.equal(r.items[0].unit,'分钟');assert.ok(r.items[0].repsPerSet>0)});
+test('同一部位推荐动作可变化，跨部位时尽量均衡覆盖所选部位',()=>{const a=recommendWorkout(240,60,['胸部'],null,()=>0);const b=recommendWorkout(240,60,['胸部'],null,()=>0.999999);assert.equal(a.items.length,4);assert.notDeepEqual(a.items.map(x=>x.action),b.items.map(x=>x.action));const mixed=recommendWorkout(240,60,['胸部','背部','腿部'],null,()=>0.5);assert.deepEqual(new Set(mixed.items.map(x=>x.part)),new Set(['胸部','背部','腿部']));assert.equal(new Set(mixed.items.map(x=>x.action)).size,mixed.items.length)});
+
+test('目标推荐要求热量大于0且至少选择一个部位',()=>{assert.throws(()=>validateWorkoutRequest(0,['胸部']),/大于0/);assert.throws(()=>validateWorkoutRequest(200,[]),/至少选择/);assert.equal(validateWorkoutRequest(200,['胸部']),true)});
+
+test('不兼容的旧版饮食推荐数据不会触发页面渲染异常',()=>{assert.equal(isMealRecommendation([{food:'燕麦'}]),false);assert.equal(isMealRecommendation({meals:[],macros:{},totalCalories:0}),false);assert.equal(isMealRecommendation(recommendMeals(1800)),true)});

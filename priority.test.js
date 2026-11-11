@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {normalizePriority,priorityClass} from './priority.js';
+test('工作优先级支持低、中、高、紧急四档且旧普通值兼容为中',()=>{assert.deepEqual(['低','中','高','紧急'].map(normalizePriority),['低','中','高','紧急']);assert.equal(normalizePriority('普通'),'中');assert.equal(priorityClass('低'),'priority-low');assert.equal(priorityClass('中'),'priority-medium');assert.equal(priorityClass('高'),'priority-high');assert.equal(priorityClass('紧急'),'priority-urgent')});

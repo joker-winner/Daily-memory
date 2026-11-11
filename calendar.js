@@ -1,0 +1,3 @@
+export const toDateKey=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+export function monthCells(year,month){const first=new Date(year,month,1);const mondayOffset=(first.getDay()+6)%7;const start=new Date(year,month,1-mondayOffset);return Array.from({length:42},(_,i)=>{const d=new Date(start.getFullYear(),start.getMonth(),start.getDate()+i);return {date:toDateKey(d),day:d.getDate(),inMonth:d.getMonth()===month}})}
+export function shiftMonth(year,month,delta){const d=new Date(year,month+delta,1);return {year:d.getFullYear(),month:d.getMonth()}}

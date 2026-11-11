@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {photoIndexAfterAdd,movePhotoIndex,makePhoto,MAX_PHOTO_BYTES} from './album.js';
+test('相册切换可循环，并在新增照片后定位到新照片',()=>{assert.equal(photoIndexAfterAdd(1),0);assert.equal(photoIndexAfterAdd(4),3);assert.equal(movePhotoIndex(0,-1,3),2);assert.equal(movePhotoIndex(2,1,3),0);assert.equal(movePhotoIndex(5,1,0),0)});
+test('相册只接收图像 data URL 并附带可备份的元数据',()=>{const p=makePhoto({id:'p',name:'memory.webp',src:'data:image/webp;base64,AA=='});assert.equal(p.name,'memory.webp');assert.equal(p.src,'data:image/webp;base64,AA==');assert.throws(()=>makePhoto({id:'x',name:'x',src:'javascript:alert(1)'}));assert.equal(MAX_PHOTO_BYTES,20971520)});
